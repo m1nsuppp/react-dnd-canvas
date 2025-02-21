@@ -1,9 +1,12 @@
+import { CanvasAPIProvider } from '@/app/_shared/contexts/canvas-api-context';
 import { Editor } from './_components/editor';
 
-export default function Home(): React.JSX.Element {
+export default function Home(): ReactComponent {
   return (
     <main className="w-full h-screen">
-      <Editor />
+      <CanvasAPIProvider>
+        <Editor />
+      </CanvasAPIProvider>
     </main>
   );
 }

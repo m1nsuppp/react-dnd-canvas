@@ -1,7 +1,7 @@
 import { Canvas } from './canvas';
 import { Sidebar } from './sidebar';
 
-export function Editor(): React.JSX.Element {
+export function Editor(): ReactComponent {
   return (
     <div className="w-full h-full flex">
       <div className="w-full h-full">
