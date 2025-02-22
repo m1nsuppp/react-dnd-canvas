@@ -1,5 +1,6 @@
 import { isServer } from '@tanstack/react-query';
 import type { Concept } from '../concept';
+import type { RenderableConcept } from './canvas.model';
 
 export interface CanvasEvents {
   onResize?: (width: number, height: number) => void;
@@ -14,14 +15,9 @@ export interface CanvasService {
   getContext(): CanvasRenderingContext2D;
 
   clear(): void;
-  render(concepts: Concept[]): void;
+  render(concepts: RenderableConcept[]): void;
 
-  drawConcept(
-    concept: Concept,
-    options?: {
-      imageElement?: HTMLImageElement;
-    },
-  ): void;
+  drawConcept(concept: RenderableConcept): void;
 
   getConceptScreenBounds(concept: Concept): {
     x: number;
@@ -35,21 +31,13 @@ export function createCanvasService(): CanvasService {
   let canvas: HTMLCanvasElement | null = null;
   let ctx: CanvasRenderingContext2D | null = null;
   let events: CanvasEvents = {};
-  let dpr = (() => {
-    if (isServer) {
-      return 1;
-    }
+  let dpr = isServer ? 1 : window.devicePixelRatio;
 
-    return window.devicePixelRatio;
-  })();
-  let resizeObserver: ResizeObserver | null = null;
-
-  function handleResize() {
+  function handleResize(width: number, height: number) {
     if (!canvas) {
       return;
     }
 
-    const { width, height } = canvas.getBoundingClientRect();
     canvas.width = width * dpr;
     canvas.height = height * dpr;
 
@@ -66,18 +54,9 @@ export function createCanvasService(): CanvasService {
         throw new Error('Failed to get canvas context');
       }
       ctx = context;
-
-      resizeObserver = new ResizeObserver(() => {
-        handleResize();
-      });
-      resizeObserver.observe(canvas);
-
-      handleResize();
     },
 
     destroy() {
-      resizeObserver?.disconnect();
-      resizeObserver = null;
       canvas = null;
       ctx = null;
       events = {};
@@ -85,7 +64,7 @@ export function createCanvasService(): CanvasService {
 
     setDevicePixelRatio(newDpr: number) {
       dpr = newDpr;
-      handleResize();
+      handleResize(canvas!.width / dpr, canvas!.height / dpr);
     },
 
     getCanvasSize() {
@@ -115,7 +94,7 @@ export function createCanvasService(): CanvasService {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
 
-    render(concepts: Concept[]) {
+    render(concepts: RenderableConcept[]) {
       this.clear();
 
       for (const concept of concepts) {
@@ -123,33 +102,23 @@ export function createCanvasService(): CanvasService {
       }
     },
 
-    drawConcept(
-      concept: Concept,
-      {
-        imageElement,
-      }: {
-        imageElement?: HTMLImageElement;
-      } = {},
-    ) {
+    drawConcept(concept: RenderableConcept) {
       if (!ctx || !canvas) {
         return;
       }
 
       const { width: canvasWidth, height: canvasHeight } = this.getCanvasSize();
-      const { scale, position, boundingBox } = concept;
+      const { scale, position, boundingBox, imageElement } = concept;
 
       const width = (boundingBox.xmax - boundingBox.xmin) * scale * canvasWidth;
-      const height = (boundingBox.ymax - boundingBox.ymin) * scale * canvasHeight;
+      const height =
+        (boundingBox.ymax - boundingBox.ymin) * scale * canvasHeight;
       const x = position.x * canvasWidth - width / 2;
       const y = position.y * canvasHeight - height / 2;
 
       ctx.save();
       ctx.scale(dpr, dpr);
-
-      if (imageElement) {
-        ctx.drawImage(imageElement, x, y, width, height);
-      }
-
+      ctx.drawImage(imageElement, x, y, width, height);
       ctx.restore();
     },
 
@@ -162,7 +131,8 @@ export function createCanvasService(): CanvasService {
       const { scale, position, boundingBox } = concept;
 
       const width = (boundingBox.xmax - boundingBox.xmin) * scale * canvasWidth;
-      const height = (boundingBox.ymax - boundingBox.ymin) * scale * canvasHeight;
+      const height =
+        (boundingBox.ymax - boundingBox.ymin) * scale * canvasHeight;
       const x = position.x * canvasWidth - width / 2;
       const y = position.y * canvasHeight - height / 2;
 
