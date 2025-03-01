@@ -1,6 +1,9 @@
 'use client';
 
-import { createProjectService, type ProjectService } from '@/lib/project';
+import {
+  createProjectService,
+  type ProjectService,
+} from '@/lib/project/project.service';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 
 export const ProjectServiceContext = createContext<ProjectService | undefined>(

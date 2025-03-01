@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { conceptSchema } from '../concept';
+import { conceptSchema } from '../concept/concept.model';
 
 export const projectSchema = z.object({
   id: z.string(),

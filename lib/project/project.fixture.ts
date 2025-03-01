@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { Project } from './project.model';
-import { conceptsFixture } from '../concept';
+import { conceptsFixture } from '../concept/concept.fixture';
 
 export const projectFixture: Project = {
   id: nanoid(),

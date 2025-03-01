@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { Concept } from './concept.model';
+import { type Concept } from './concept.model';
 
 export const conceptsFixture: Concept[] = [
   {
